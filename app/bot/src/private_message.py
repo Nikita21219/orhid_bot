@@ -93,6 +93,7 @@ class PrivateMessage:
     def is_allow_to_make_appointment(self, doctor_id, date, time):
         medods = Medods()
         appointments = medods.get_appointments(doctor_id, date)
+        print(f"appointments: {appointments}")
         for appointment in appointments:
             if appointment['time'] == time:
                 return False

@@ -244,8 +244,7 @@ class Medods:
         response = requests.get(URL_APPOINTMENTS, headers=self.get_auth(), params=check_appointment_params)
         if response.status_code != 200:
             return print(f'{response.status_code}: {response.text}')
-        result = response.json()['data']
-        return result[0] if result else result
+        return response.json()['data']
 
     def make_appointment(self, data: dict) -> bool:
         params = {
