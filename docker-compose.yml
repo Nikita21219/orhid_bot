@@ -1,37 +1,37 @@
 version: '3.9'
 
 services:
-  bot:
-    build:
-      context: app/bot
-    container_name: bot
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_PORT: ${MYSQL_PORT}
-      BOT_TOKEN: ${BOT_TOKEN}
-      URL_USERS: ${URL_USERS}
-      URL_SPECIALTIES: ${URL_SPECIALTIES}
-      URL_SCHEDULES: ${URL_SCHEDULES}
-      URL_APPOINTMENTS: ${URL_APPOINTMENTS}
-      URL_CLIENTS: ${URL_CLIENTS}
-      OWNER_CHAT_ID: ${OWNER_CHAT_ID}
-      DOCTOR1: ${DOCTOR1}
-      DOCTOR2: ${DOCTOR2}
-      CRM_ISS: ${CRM_ISS}
-      CRM_SECRET_KEY: ${CRM_SECRET_KEY}
-      REDIS_HOST: ${REDIS_HOST}
-    depends_on:
-      redis:
-        condition: service_started
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - orhid_bot_net
+#  bot:
+#    build:
+#      context: app/bot
+#    container_name: bot
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#      MYSQL_USER: ${MYSQL_USER}
+#      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+#      MYSQL_DATABASE: ${MYSQL_DATABASE}
+#      MYSQL_HOST: ${MYSQL_HOST}
+#      MYSQL_PORT: ${MYSQL_PORT}
+#      BOT_TOKEN: ${BOT_TOKEN}
+#      URL_USERS: ${URL_USERS}
+#      URL_SPECIALTIES: ${URL_SPECIALTIES}
+#      URL_SCHEDULES: ${URL_SCHEDULES}
+#      URL_APPOINTMENTS: ${URL_APPOINTMENTS}
+#      URL_CLIENTS: ${URL_CLIENTS}
+#      OWNER_CHAT_ID: ${OWNER_CHAT_ID}
+#      DOCTOR1: ${DOCTOR1}
+#      DOCTOR2: ${DOCTOR2}
+#      CRM_ISS: ${CRM_ISS}
+#      CRM_SECRET_KEY: ${CRM_SECRET_KEY}
+#      REDIS_HOST: ${REDIS_HOST}
+#    depends_on:
+#      redis:
+#        condition: service_started
+#      db:
+#        condition: service_healthy
+#    restart: unless-stopped
+#    networks:
+#      - orhid_bot_net
 
   db:
     image: mysql:8.0.31
@@ -47,6 +47,8 @@ services:
       interval: 2s
       timeout: 5s
       retries: 7
+    ports:
+      - "33066:3306"
     volumes:
       - orhid_bot_db:/var/lib/mysql
       - ./app/mysql/init/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql:ro
@@ -57,6 +59,8 @@ services:
     image: redis:alpine3.17
     restart: unless-stopped
     container_name: orhid_bot_redis
+    ports:
+      - "6379:6379"
     networks:
       - orhid_bot_net
 

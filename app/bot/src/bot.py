@@ -10,12 +10,7 @@ import asyncio
 from aiogram import Bot, Dispatcher, types
 from update_cache import *
 from redis_storage import RedisStorage
-import logging
 
-
-format_template = "%(asctime)s %(levelname)s %(message)s"
-filename = 'bot.log'
-logging.basicConfig(level=logging.WARNING, filename=filename, filemode="w", format=format_template)
 
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher(bot)

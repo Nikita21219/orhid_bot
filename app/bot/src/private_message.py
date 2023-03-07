@@ -86,16 +86,17 @@ class PrivateMessage:
                 )
             await self._message.answer('Загружаю актуальных врачей, подождите немного')
             await self._message.answer('Выберите врача', reply_markup=get_users_markup())
-        else:
-            await self._message.answer('Test', reply_markup=get_main_menu_markup())
 
     async def send_error(self, message):
         await self._bot.send_message(self._chat_id, message)
 
     def is_allow_to_make_appointment(self, doctor_id, date, time):
         medods = Medods()
-        appointment = medods.get_appointments(doctor_id, date)
-        return False if not appointment or appointment['time'] == time else True
+        appointments = medods.get_appointments(doctor_id, date)
+        for appointment in appointments:
+            if appointment['time'] == time:
+                return False
+        return True
 
     def make_appointment(self, user_id, chosen_date, chosen_time, client_id):
         if not self.is_allow_to_make_appointment(user_id, chosen_date, chosen_time):
