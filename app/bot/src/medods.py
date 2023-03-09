@@ -279,13 +279,19 @@ class Medods:
 
     def update_users(self):
         users = self.get_users_from_crm()
-        RedisStorage().dump_data(users, 'users')
+        if users:
+            RedisStorage().dump_data(users, 'users')
+        else:
+            print('Error! Users is None!!!')
 
     def update_schedule(self):
         users = self.get_users_from_cache()
         user_ids = [user['id'] for user in users]
         schedule = self.get_schedule_users(user_ids)
-        RedisStorage().dump_data(schedule, 'schedule')
+        if schedule:
+            RedisStorage().dump_data(schedule, 'schedule')
+        else:
+            print(f"Error! Schedule is None!!!")
 
     def update_token(self, token):
         r = RedisStorage()

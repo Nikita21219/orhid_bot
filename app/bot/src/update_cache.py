@@ -4,7 +4,7 @@ from medods import Medods
 
 async def update_token_coroutine():
     # in seconds
-    wait_for = 5
+    wait_for = 60
     while True:
         medods = Medods()
         token = medods.gen_token()
@@ -14,7 +14,7 @@ async def update_token_coroutine():
 
 async def update_users_coroutine():
     # in seconds
-    wait_for = 43200
+    wait_for = 21600
     while True:
         Medods().update_users()
         await asyncio.sleep(wait_for)

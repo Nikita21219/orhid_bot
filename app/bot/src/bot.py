@@ -30,7 +30,6 @@ async def main():
     loop.create_task(update_token_coroutine())
     await asyncio.sleep(5)
     loop.create_task(update_users_coroutine())
-    await asyncio.sleep(10)
     loop.create_task(update_schedule_coroutine())
     await dp.start_polling(bot)
 
