@@ -28,7 +28,7 @@ async def main():
     await bot.delete_webhook(drop_pending_updates=True)
     loop = asyncio.get_event_loop()
     loop.create_task(update_token_coroutine())
-    await asyncio.sleep(5)
+    await asyncio.sleep(15)
     loop.create_task(update_users_coroutine())
     loop.create_task(update_schedule_coroutine())
     await dp.start_polling(bot)
