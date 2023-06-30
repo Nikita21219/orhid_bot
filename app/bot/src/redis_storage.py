@@ -2,6 +2,7 @@ import redis
 import json
 from config import *
 
+
 class RedisStorage:
     def __init__(self):
         self._client = redis.Redis(host=REDIS_HOST)

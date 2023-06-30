@@ -6,15 +6,14 @@ from database import Database
 from callback import Callback
 from private_message import PrivateMessage
 from config import *
-import asyncio
 from aiogram import Bot, Dispatcher, types
 from update_cache import *
 from redis_storage import RedisStorage
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher(bot)
-loop = asyncio.get_event_loop()
 db = Database()
 if db.connected == 0:
     print('Database not connected')
@@ -25,12 +24,18 @@ if not RedisStorage().connected():
 
 
 async def main():
+    await update_token_coroutine()
+    await asyncio.sleep(10)
+    await update_users_coroutine()
+    await update_schedule_coroutine()
+
+    scheduler = AsyncIOScheduler()
+    scheduler.start()
     await bot.delete_webhook(drop_pending_updates=True)
-    loop = asyncio.get_event_loop()
-    loop.create_task(update_token_coroutine())
-    await asyncio.sleep(15)
-    loop.create_task(update_users_coroutine())
-    loop.create_task(update_schedule_coroutine())
+    scheduler.add_job(update_token_coroutine, 'interval', minutes=1)
+    await asyncio.sleep(20)
+    scheduler.add_job(update_users_coroutine, 'interval', hours=6)
+    scheduler.add_job(update_schedule_coroutine, 'interval', minutes=5)
     await dp.start_polling(bot)
 
 
@@ -130,4 +135,3 @@ async def read_contact_phone(message: types.Message):
 
 if __name__ == '__main__':
     asyncio.run(main())
-
