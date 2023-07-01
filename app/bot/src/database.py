@@ -32,6 +32,7 @@ class Database:
                 cursor.execute(expression, (tg_user_id,))
                 return 0
             except Exception as e:
+                print(f"Exception in database function: {e}")
                 return 1
 
     def get_state(self, tg_user_id):
@@ -41,6 +42,7 @@ class Database:
                 cursor.execute(expression, (tg_user_id, ))
                 return cursor.fetchall()
             except Exception as e:
+                print(f"Exception in database function: {e}")
                 return 1
 
     def update_row(self, tg_user_id, column, value):
@@ -50,6 +52,7 @@ class Database:
                 cursor.execute(expression, (value, tg_user_id))
                 return 0
             except Exception as e:
+                print(f"Exception in database function: {e}")
                 return 1
 
     def get_column(self, tg_user_id, colomn):
@@ -59,6 +62,7 @@ class Database:
                 cursor.execute(expression, (tg_user_id, ))
                 return cursor.fetchall()
             except Exception as e:
+                print(f"Exception in database function: {e}")
                 return 1
 
     def read_exec(self, expression, params: tuple):
@@ -67,4 +71,5 @@ class Database:
                 cursor.execute(expression, params)
                 return cursor.fetchall()
             except Exception as e:
+                print(f"Exception in database function: {e}")
                 return 1

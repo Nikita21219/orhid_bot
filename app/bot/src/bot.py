@@ -15,7 +15,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher(bot)
 db = Database()
-if db.connected == 0:
+if not db.connected:
     print('Database not connected')
     exit(1)
 if not RedisStorage().connected():
