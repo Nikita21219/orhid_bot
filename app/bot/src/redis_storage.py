@@ -17,10 +17,9 @@ class RedisStorage:
     def load_data(self, key_name: str):
         data = self._client.get(key_name)
         try:
-            json_data = json.loads(data)
+            return json.loads(data)
         except TypeError:
             return None
-        return json_data
 
     def dump_data(self, data, key_name: str):
         json_str = json.dumps(data)

@@ -2,16 +2,28 @@ import messages
 from keyboards import *
 import utils
 import utils_bot
-
+from notifier import Notifier
 from config import *
+from datetime import datetime, timedelta
+
 
 class PrivateMessage:
-    def __init__(self, message, db, bot):
+    def __init__(self, message, db, bot, scheduler):
         self._message = message
         self._chat_id = message.chat.id
         self._username = message.from_user.username
         self._db = db
         self._bot = bot
+        self._scheduler = scheduler
+
+    async def schedule_notification(self, doctor: str, tg_user_id: str):
+        query = "SELECT date, time FROM Users WHERE tg_user_id=%s"
+        row = self._db.read_exec(query, (tg_user_id,))
+        if row == 1 or not row or len(row) < 1 or not row[0] or not row[0][0] or not row[0][1]:
+            print(f'Date time not found in db for user {tg_user_id}')
+            return
+        user_date = datetime.strptime(f"{row[0][0]} {row[0][1]}", "%Y-%m-%d %H:%M")
+        await Notifier.notify_appointment(self._message, user_date, doctor)
 
     async def handle_phone_number(self):
         phone = utils.phone_to_crm_format(self._message.text)
@@ -49,7 +61,9 @@ class PrivateMessage:
                 return await self._bot.send_message(self._chat_id, messages.just_error)
 
             client_id = self._db.get_column(self._username, 'client_id')[0][0]
-            if self.make_appointment(doctor_id, date, chosen_time, client_id):
+            # if self.make_appointment(doctor_id, date, chosen_time, client_id):
+            # TODO remove condition
+            if True:
                 medods = Medods()
                 doctor = medods.get_user_full_name(doctor_id)
                 if not doctor:
@@ -64,6 +78,7 @@ class PrivateMessage:
                 message = f'Пользователь @{self._message.from_user.username} записался на прием к врачу'
                 message += f' {doctor} на {date_ru} в {chosen_time}'
                 await self._bot.send_message(OWNER_CHAT_ID, message)
+                await self.schedule_notification(doctor, self._message.from_user.username)
             else:
                 return await self._bot.send_message(self._chat_id, 'Что-то пошло не так, попробуйте снова')
         else:

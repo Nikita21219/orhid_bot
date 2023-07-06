@@ -17,3 +17,6 @@ MYSQL_HOST = os.getenv("MYSQL_HOST")
 REDIS_HOST = os.getenv("REDIS_HOST")
 doctor1 = os.getenv('DOCTOR1')
 doctor2 = os.getenv('DOCTOR2')
+TZ_MSK = 'Europe/Moscow'
+TZ_YEKT = 'Asia/Yekaterinburg'
+TZ_SERVER = os.getenv('TZ_SERVER')

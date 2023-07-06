@@ -2,19 +2,17 @@ import messages
 import utils_bot
 from masks import *
 from keyboards import *
-from database import Database
 from callback import Callback
 from private_message import PrivateMessage
-from config import *
-from aiogram import Bot, Dispatcher, types
+from aiogram import types
 from update_cache import *
 from redis_storage import RedisStorage
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from notifier import Notifier
+from bot_instanse import *
+from datetime import datetime, timedelta
+import pytz
 
 
-bot = Bot(BOT_TOKEN)
-dp = Dispatcher(bot)
-db = Database()
 if not db.connected:
     print('Database not connected')
     exit(1)
@@ -25,18 +23,21 @@ if not RedisStorage().connected():
 
 async def main():
     await update_token_coroutine()
-    await asyncio.sleep(10)
-    await update_users_coroutine()
-    await update_schedule_coroutine()
-
-    scheduler = AsyncIOScheduler()
+    # await asyncio.sleep(10)
+    # await update_users_coroutine()
+    # await update_schedule_coroutine()
+    #
     scheduler.start()
-    await bot.delete_webhook(drop_pending_updates=True)
+    # await bot.delete_webhook(drop_pending_updates=True)
     scheduler.add_job(update_token_coroutine, 'interval', minutes=1)
-    await asyncio.sleep(20)
-    scheduler.add_job(update_users_coroutine, 'interval', hours=6)
-    scheduler.add_job(update_schedule_coroutine, 'interval', minutes=5)
+    # await asyncio.sleep(20)
+    # scheduler.add_job(update_users_coroutine, 'interval', hours=6)
+    # scheduler.add_job(update_schedule_coroutine, 'interval', minutes=5)
     await dp.start_polling(bot)
+
+
+async def tmp_func():
+    print(f"Hello world")
 
 
 @dp.message_handler(commands=["start"])
@@ -60,7 +61,7 @@ async def message_handler(message: types.Message):
         await message.answer(messages.username_info, reply_markup=get_main_menu_markup())
         return
     if message.chat.type == 'private':
-        private_message = PrivateMessage(message, db, bot)
+        private_message = PrivateMessage(message, db, bot, scheduler)
         lite_messages = [
             'В главное меню ◀️',
             'Информация',
@@ -92,6 +93,7 @@ async def query_handler(call: types.CallbackQuery):
         return
 
     result = db.get_state(call.from_user.username)
+    # TODO fix exception list index out of range
     if result == 1 or len(result[0]) == 0:
         return await bot.send_message(call.from_user.id, messages.just_error, reply_markup=get_main_menu_markup())
 
