@@ -1,7 +1,6 @@
-import datetime
-
 import messages
 from keyboards import *
+import utils
 
 
 class Callback:
@@ -24,7 +23,7 @@ class Callback:
             await self._bot.send_message(
                 self._call.from_user.id,
                 messages.not_allowed_doctor,
-                reply_markup=get_main_menu_markup()
+                reply_markup=main_menu_markup
             )
 
     async def handle_choice_date(self):
@@ -44,7 +43,7 @@ class Callback:
             await self._bot.send_message(
                 self._call.from_user.id,
                 messages.not_allowed_time,
-                reply_markup=get_main_menu_markup()
+                reply_markup=main_menu_markup
             )
 
     async def handle_choice_time(self):
@@ -65,7 +64,7 @@ class Callback:
                 return await self._bot.send_message(
                     self._call.from_user.id,
                     messages.just_error,
-                    reply_markup=get_main_menu_markup()
+                    reply_markup=main_menu_markup
                 )
             doctor_id, date, chosen_time, client_id, phone = db_result[0]
             if self._db.update_row(self._username, 'state', 'finish'):
@@ -85,7 +84,22 @@ class Callback:
             message = '‼️Если информация правильная, нажмите кнопку ПОДТВЕРДИТЬ‼️'
             await self._bot.send_message(self._call.from_user.id, message, reply_markup=get_confirming_markup())
         elif self._user_data == 'no':
-            await self._bot.send_message(self._call.from_user.id, messages.enter_name, reply_markup=get_main_menu_markup())
+            await self._bot.send_message(self._call.from_user.id, messages.enter_name, reply_markup=main_menu_markup)
+
+    async def handle_feedback(self):
+        msg = ''
+        if self._call.data == 'no_feedback':
+            msg = messages.bad_feedback
+            if self._db.update_row(self._username, 'state', 'feedback'):
+                return self.send_error(messages.just_error)
+        elif self._call.data == 'yes_feedback':
+            msg = messages.leave_feedback
+
+        await self._bot.send_message(
+            self._call.from_user.id,
+            msg,
+            reply_markup=main_menu_markup
+        )
 
     async def send_error(self, message):
-        await self._bot.send_message(self._call.from_user.id, message, reply_markup=get_main_menu_markup())
+        await self._bot.send_message(self._call.from_user.id, message, reply_markup=main_menu_markup)

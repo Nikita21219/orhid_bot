@@ -7,10 +7,8 @@ from private_message import PrivateMessage
 from aiogram import types
 from update_cache import *
 from redis_storage import RedisStorage
-from notifier import Notifier
 from bot_instanse import *
-from datetime import datetime, timedelta
-import pytz
+import utils
 
 
 if not db.connected:
@@ -36,43 +34,39 @@ async def main():
     await dp.start_polling(bot)
 
 
-async def tmp_func():
-    print(f"Hello world")
-
-
 @dp.message_handler(commands=["start"])
 async def cmd_start(message: types.Message):
     if not message['from']['username']:
         await message.answer(f"Привет!" + messages.username_info)
     else:
         name = message['from']['first_name']
-        await message.answer(f'Привет, {name}!' + messages.start_message, reply_markup=get_main_menu_markup())
+        await message.answer(f'Привет, {name}!' + messages.start_message, reply_markup=main_menu_markup)
 
 
 @dp.message_handler(commands=['menu'])
 async def cmd_menu(message: types.Message):
-    await message.answer('Вы вернулись в главное меню', reply_markup=get_main_menu_markup())
+    await message.answer('Вы вернулись в главное меню', reply_markup=main_menu_markup)
 
 
 @dp.message_handler(content_types=['text'])
 async def message_handler(message: types.Message):
     username = message.from_user.username
     if not username:
-        await message.answer(messages.username_info, reply_markup=get_main_menu_markup())
+        await message.answer(messages.username_info, reply_markup=main_menu_markup)
         return
     if message.chat.type == 'private':
         private_message = PrivateMessage(message, db, bot, scheduler)
-        lite_messages = [
+        lite_messages = (
             'В главное меню ◀️',
             'Информация',
             'График',
             'Контакты',
             'Записаться на прием'
-        ]
+        )
 
         result_set = db.get_state(username)
         if result_set == 1:
-            return await message.answer(messages.just_error, reply_markup=get_main_menu_markup())
+            return await message.answer(messages.just_error, reply_markup=main_menu_markup)
 
         if message.text in lite_messages:
             await private_message.handle_lite_message()
@@ -82,29 +76,32 @@ async def message_handler(message: types.Message):
             await private_message.handle_enter_name()
         elif message.text == '✅ПОДТВЕРДИТЬ✅':
             await private_message.handle_confirm()
+        elif result_set[0][0] == 'feedback':
+            await private_message.handle_feedback()
         else:
-            await message.answer('Я вас не понимаю', reply_markup=get_main_menu_markup())
+            await message.answer('Я вас не понимаю', reply_markup=main_menu_markup)
 
 
 @dp.callback_query_handler(lambda c: c.data)
 async def query_handler(call: types.CallbackQuery):
     if call.data == 'main_menu':
-        await bot.send_message(call.from_user.id, messages.return_menu, reply_markup=get_main_menu_markup())
+        await bot.send_message(call.from_user.id, messages.return_menu, reply_markup=main_menu_markup)
         return
 
     result = db.get_state(call.from_user.username)
-    # TODO fix exception list index out of range
-    if result == 1 or len(result[0]) == 0:
-        return await bot.send_message(call.from_user.id, messages.just_error, reply_markup=get_main_menu_markup())
+    if result == 1 or not result or len(result[0]) == 0:
+        return await bot.send_message(call.from_user.id, messages.just_error, reply_markup=main_menu_markup)
 
     username = call.from_user.username
     if not username:
-        return await bot.send_message(call.from_user.id, messages.username_info, reply_markup=get_main_menu_markup())
+        return await bot.send_message(call.from_user.id, messages.username_info, reply_markup=main_menu_markup)
 
     callback = Callback(username, call, db, bot)
     state = db.get_state(username)[0][0]
 
-    if state == 'choice doctor' and call.data.isdigit():
+    if call.data in ('yes_feedback', 'no_feedback'):
+        return await callback.handle_feedback()
+    elif state == 'choice doctor' and call.data.isdigit():
         return await callback.handle_choice_doctor()
     elif state == 'choice date' and is_date(call.data):
         return await callback.handle_choice_date()
@@ -118,20 +115,20 @@ async def query_handler(call: types.CallbackQuery):
 async def read_contact_phone(message: types.Message):
     username = message.from_user.username
     if not username:
-        return await message.answer(messages.username_info, reply_markup=get_main_menu_markup())
+        return await message.answer(messages.username_info, reply_markup=main_menu_markup)
     result = db.get_state(username)
     if result == 1 or result[0][0] != 'send phone':
-        return await message.answer(messages.just_error, reply_markup=get_main_menu_markup())
+        return await message.answer(messages.just_error, reply_markup=main_menu_markup)
     phone = utils.phone_to_crm_format(message.contact.phone_number)
     if db.update_row(username, 'phone_number', phone):
         return await message.answer(
             'Произошла ошибка, при отправке телефона',
-            reply_markup=get_main_menu_markup()
+            reply_markup=main_menu_markup
         )
     if db.update_row(username, 'state', 'check data'):
-        return await message.answer('Произошла ошибка, при проверке данных', reply_markup=get_main_menu_markup())
+        return await message.answer('Произошла ошибка, при проверке данных', reply_markup=main_menu_markup)
     if db.update_row(username, 'state', 'enter name'):
-        return await message.answer(messages.just_error, reply_markup=get_main_menu_markup())
+        return await message.answer(messages.just_error, reply_markup=main_menu_markup)
     await utils_bot.ask_name(phone, message, db)
 
 

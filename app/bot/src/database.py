@@ -13,6 +13,7 @@ class Database:
     5. check data
     6. enter name
     7. finish
+    8. feedback
     """
 
     def __init__(self):

@@ -1,14 +1,11 @@
-from collections import defaultdict
 from typing import List
 
 from config import *
 from redis_storage import RedisStorage
 import jwt
-import utils
 import datetime
 import time
 import requests
-import threading
 
 
 class Medods:

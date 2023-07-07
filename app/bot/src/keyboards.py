@@ -1,9 +1,6 @@
 import datetime
-import requests
 from babel.dates import format_datetime
 
-from config import *
-import utils
 from medods import Medods
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
@@ -96,3 +93,20 @@ def get_users_markup():
     main_menu_button = InlineKeyboardButton('В главное меню ◀️', callback_data='main_menu')
     keyboard.add(main_menu_button)
     return keyboard
+
+
+def get_leave_feedback_markup():
+    keyboard = InlineKeyboardMarkup()
+
+    buttons_text = ('Да', 'Нет', 'В главное меню ◀️')
+    buttons_callback = ('yes_feedback', 'no_feedback', 'main_menu')
+    for btn_text, btn_callback in zip(buttons_text, buttons_callback):
+        btn = InlineKeyboardButton(btn_text, callback_data=btn_callback)
+        keyboard.add(btn)
+
+    return keyboard
+
+
+leave_feedback_markup = get_leave_feedback_markup()
+main_menu_markup = get_main_menu_markup()
+social_networks_markup = get_social_networks_markup()

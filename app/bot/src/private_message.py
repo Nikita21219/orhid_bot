@@ -16,7 +16,7 @@ class PrivateMessage:
         self._bot = bot
         self._scheduler = scheduler
 
-    async def schedule_notification(self, doctor: str, tg_user_id: str):
+    async def schedule_notifications(self, doctor: str, tg_user_id: str):
         query = "SELECT date, time FROM Users WHERE tg_user_id=%s"
         row = self._db.read_exec(query, (tg_user_id,))
         if row == 1 or not row or len(row) < 1 or not row[0] or not row[0][0] or not row[0][1]:
@@ -24,6 +24,7 @@ class PrivateMessage:
             return
         user_date = datetime.strptime(f"{row[0][0]} {row[0][1]}", "%Y-%m-%d %H:%M")
         await Notifier.notify_appointment(self._message, user_date, doctor)
+        await Notifier.notify_leave_feedback(self._message, user_date)
 
     async def handle_phone_number(self):
         phone = utils.phone_to_crm_format(self._message.text)
@@ -61,9 +62,7 @@ class PrivateMessage:
                 return await self._bot.send_message(self._chat_id, messages.just_error)
 
             client_id = self._db.get_column(self._username, 'client_id')[0][0]
-            # if self.make_appointment(doctor_id, date, chosen_time, client_id):
-            # TODO remove condition
-            if True:
+            if self.make_appointment(doctor_id, date, chosen_time, client_id):
                 medods = Medods()
                 doctor = medods.get_user_full_name(doctor_id)
                 if not doctor:
@@ -73,12 +72,12 @@ class PrivateMessage:
                 message = f'Вы успешно записались на прием к врачу {doctor}'
                 message += f' на {date_ru} в {chosen_time}.\n'
                 message += 'В ближайшее время с вами свяжется администратор'
-                await self._bot.send_message(self._chat_id, message)
+                await self._bot.send_message(self._chat_id, message, reply_markup=main_menu_markup)
 
                 message = f'Пользователь @{self._message.from_user.username} записался на прием к врачу'
                 message += f' {doctor} на {date_ru} в {chosen_time}'
                 await self._bot.send_message(OWNER_CHAT_ID, message)
-                await self.schedule_notification(doctor, self._message.from_user.username)
+                await self.schedule_notifications(doctor, self._message.from_user.username)
             else:
                 return await self._bot.send_message(self._chat_id, 'Что-то пошло не так, попробуйте снова')
         else:
@@ -86,21 +85,29 @@ class PrivateMessage:
 
     async def handle_lite_message(self):
         if self._message.text == 'В главное меню ◀️':
-            await self._message.answer('Вы вернулись в главное меню', reply_markup=get_main_menu_markup())
+            await self._message.answer('Вы вернулись в главное меню', reply_markup=main_menu_markup)
         elif self._message.text == 'Информация':
-            await self._message.answer(messages.centr_info, reply_markup=get_social_networks_markup())
+            await self._message.answer(messages.centr_info, reply_markup=social_networks_markup)
         elif self._message.text == 'График':
-            await self._message.answer(messages.schedule, reply_markup=get_main_menu_markup())
+            await self._message.answer(messages.schedule, reply_markup=main_menu_markup)
         elif self._message.text == 'Контакты':
-            await self._message.answer(messages.contacts, reply_markup=get_main_menu_markup())
+            await self._message.answer(messages.contacts, reply_markup=main_menu_markup)
         elif self._message.text == 'Записаться на прием':
             if self._db.add_user(self._message.chat.username):
                 return await self._message.answer(
                     'Произошла ошибка добавления пользователя в базу данных',
-                    reply_markup=get_main_menu_markup()
+                    reply_markup=main_menu_markup
                 )
             await self._message.answer('Загружаю актуальных врачей, подождите немного')
             await self._message.answer('Выберите врача', reply_markup=get_users_markup())
+
+    async def handle_feedback(self):
+        if self._db.update_row(self._username, 'state', ''):
+            print(f"Error to flush state from user {self._message.chat.username} after feedback")
+        feedback_text = self._message.text
+        message = f"Пациенту @{self._message.chat.username} не понравилось посещение клиники. Вот его фидбек:\n\n"
+        await self._bot.send_message(OWNER_CHAT_ID, message + feedback_text)
+        await self._message.answer('Большое спасибо за обратную связь!', reply_markup=main_menu_markup)
 
     async def send_error(self, message):
         await self._bot.send_message(self._chat_id, message)
