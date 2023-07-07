@@ -21,16 +21,16 @@ if not RedisStorage().connected():
 
 async def main():
     await update_token_coroutine()
-    # await asyncio.sleep(10)
-    # await update_users_coroutine()
-    # await update_schedule_coroutine()
-    #
+    await asyncio.sleep(10)
+    await update_users_coroutine()
+    await update_schedule_coroutine()
+
     scheduler.start()
-    # await bot.delete_webhook(drop_pending_updates=True)
+    await bot.delete_webhook(drop_pending_updates=True)
     scheduler.add_job(update_token_coroutine, 'interval', minutes=1)
-    # await asyncio.sleep(20)
-    # scheduler.add_job(update_users_coroutine, 'interval', hours=6)
-    # scheduler.add_job(update_schedule_coroutine, 'interval', minutes=5)
+    await asyncio.sleep(20)
+    scheduler.add_job(update_users_coroutine, 'interval', hours=6)
+    scheduler.add_job(update_schedule_coroutine, 'interval', minutes=5)
     await dp.start_polling(bot)
 
 
