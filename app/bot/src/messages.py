@@ -71,7 +71,10 @@ need_phone = 'Для записи на прием необходим ваш но
 
 return_menu = 'Вы вернулись в главное меню'
 
-leave_feedback = """Оставьте отзыв"""
+leave_feedback = """
+Оставьте отзыв
+https://prodoctorov.ru/troick-ch/lpu/52613-belaya-orhideya/
+"""
 
 bad_feedback = """
 Очень жаль! Расскажите, что именно вам не понравилось?
