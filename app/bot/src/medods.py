@@ -223,9 +223,11 @@ class Medods:
             offset += limit
             time.sleep(0.5)
 
-        users = [user for user in all_users if
-                 user['specialties'][0]['title'] != 'Медсестра' and
-                 user['surname'] != 'Дневной Стационар']
+        users = [user for user in all_users
+                 if user['specialties'][0]['title'] != 'Медсестра'
+                 and user['specialties'][0]['title'] != 'Медбрат'
+                 and user['surname'] != 'Дневной Стационар'
+                 and user['surname'] != 'Кузнецов']
 
         return sorted(users, key=lambda d: d['surname'])
 

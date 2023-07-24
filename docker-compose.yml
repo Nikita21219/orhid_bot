@@ -24,6 +24,8 @@ services:
       CRM_ISS: ${CRM_ISS}
       CRM_SECRET_KEY: ${CRM_SECRET_KEY}
       REDIS_HOST: ${REDIS_HOST}
+      TZ_SERVER: ${TZ_SERVER}
+      TZ: ${TZ_SERVER}
     depends_on:
       redis:
         condition: service_started
