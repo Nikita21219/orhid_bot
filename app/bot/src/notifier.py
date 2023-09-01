@@ -30,8 +30,7 @@ class Notifier:
         ekb_time = ekb_tz.localize(date_appointment - timedelta(hours=NOTIFY_HOURS))
         server_time = ekb_time.astimezone(server_tz)
 
-        time = ekb_time.strftime("%H:%M")
-        msg = f'Добрый день! Врач {doctor_name} будет ждать вас сегодня в {time}'
+        msg = f'Добрый день! Врач {doctor_name} будет ждать вас сегодня в {date_appointment.strftime("%H:%M")}'
         scheduler.add_job(
             Notifier.send_message,
             trigger="date",
